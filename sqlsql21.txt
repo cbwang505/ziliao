@@ -1,0 +1,24 @@
+{SELECT  y.NSRBM,y.NSRMC, z.*,w.*  FROM (
+SELECT *,(ISNULL(se1,0)+ISNULL(se2,0)+ISNULL(se3,0)+ISNULL(se4,0)+ISNULL(se5,0)) AS sumse FROM (
+SELECT NSRDZDAH,SUM(CASE WHEN ZSXM_DM = '01' AND YSKM_DM NOT IN ('1010115' , '1010116' , '1010120') THEN SE END) AS se1,SUM(CASE WHEN ZSXM_DM = '01' AND YSKM_DM = '1010115' THEN SE END) AS se2,SUM(CASE WHEN ZSXM_DM = '02' THEN SE END) AS se3,SUM(CASE WHEN ZSXM_DM = '04' THEN SE END) AS se4,SUM(CASE WHEN ZSXM_DM = '65' THEN SE END) AS se5
+ FROM fund.V_SB_ZSXX r  
+ where       NOT EXISTS (SELECT  ZSXH
+         FROM fund.V_SB_ZSXX s WHERE (( SKSX_DM IN ('21', '22', '26','27', '35' , '36')) OR( SKZL_DM <> '10' or ZSPM_DM = '9900' or (ZSPM_DM = 'G001' and ZSXM_DM<>'65') or ZSPM_DM = 'G034') OR( SKSX_DM = '15') OR( ZSXM_DM = '04' AND ( ZSPM_DM = '0700' OR ZSFS_DM = '50')) OR( ZSXM_DM = '02' AND ZSPM_DM LIKE '03%') )  AND
+                                   r.FDataSource = s.FDataSource AND
+                                   r.ZSXH = s.ZSXH ) and DATEDIFF(DAY,RKRQ,'2014-01-01')<=0 AND DATEDIFF(DAY,RKRQ,'2014-12-31')>=0 
+          GROUP BY NSRDZDAH,YEAR(RKRQ)
+          ) AS a WHERE ISNULL(se1,0)+ISNULL(se2,0)+ISNULL(se3,0)+ISNULL(se4,0)+ISNULL(se5,0) >0
+         ) AS z
+         LEFT JOIN (
+         SELECT *,(ISNULL(yse1,0)+ISNULL(yse2,0)+ISNULL(yse3,0)+ISNULL(yse4,0)+ISNULL(yse5,0)) AS ysumse FROM (
+SELECT NSRDZDAH as YNSRDZDAH,SUM(CASE WHEN ZSXM_DM = '01' AND YSKM_DM NOT IN ('1010115' , '1010116' , '1010120') THEN SE END) AS yse1,SUM(CASE WHEN ZSXM_DM = '01' AND YSKM_DM = '1010115' THEN SE END) AS yse2,SUM(CASE WHEN ZSXM_DM = '02' THEN SE END) AS yse3,SUM(CASE WHEN ZSXM_DM = '04' THEN SE END) AS yse4,SUM(CASE WHEN ZSXM_DM = '65' THEN SE END) AS yse5
+ FROM fund.V_SB_ZSXX r  
+ where      NOT EXISTS (SELECT  ZSXH
+         FROM fund.V_SB_ZSXX s WHERE (( SKSX_DM IN ('21', '22', '26','27', '35' , '36')) OR( SKZL_DM <> '10' or ZSPM_DM = '9900' or (ZSPM_DM = 'G001' and ZSXM_DM<>'65') or ZSPM_DM = 'G034') OR( SKSX_DM = '15') OR( ZSXM_DM = '04' AND ( ZSPM_DM = '0700' OR ZSFS_DM = '50')) OR( ZSXM_DM = '02' AND ZSPM_DM LIKE '03%') )  AND
+                                   r.FDataSource = s.FDataSource AND
+                                   r.ZSXH = s.ZSXH ) and DATEDIFF(DAY,RKRQ,'2013-01-01')<=0 AND DATEDIFF(DAY,RKRQ,'2013-12-31')>=0 
+          GROUP BY NSRDZDAH,YEAR(RKRQ)
+          ) AS a WHERE ISNULL(yse1,0)+ISNULL(yse2,0)+ISNULL(yse3,0)+ISNULL(yse4,0)+ISNULL(yse5,0) >0
+          ) w ON z.NSRDZDAH = w.YNSRDZDAH   LEFT JOIN fund.V_DJ_NSRXX y ON z.NSRDZDAH=y.NSRDZDAH  
+left join fund.t_DJ_NSRXX_Extension1 x on  z.NSRDZDAH = x.NSRDZDAH  and fyear=2014
+WHERE z.sumse-w.ysumse>5000000 and   FEnterprisePropNo <>'01'}

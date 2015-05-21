@@ -1,0 +1,9 @@
+                         jObject = new JObject();
+       
+                        jObject["method"] = "WeiXin";(微信端不需要解析)
+                        jObject["type"] = "C";
+                        jObject["Content"]="内容";
+			jObject["OpenId"]="openid"
+                        jObject["function"] = "CheckSignature/SendTemplateMessage/";(微信端不需要解析)
+                        this.MqSendInstance.SendText(jObject.ToString());
+

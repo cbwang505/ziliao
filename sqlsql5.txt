@@ -1,0 +1,30 @@
+SELECT  y.NSRBM,y.NSRMC, z.NSRDZDAH,ISNULL(z.se1,0) AS zse1,ISNULL(z.se2,0) AS zse2,ISNULL(z.se3,0) AS zse3,ISNULL(z.se4,0) AS zse4,ISNULL(z.se5,0) AS zse5,z.sumse AS sumse1,
+
+ ISNULL(w.se1,0) AS wse1,ISNULL(w.se2,0)AS wse2,ISNULL(w.se3,0)AS wse3,ISNULL(w.se4,0)AS wse4,ISNULL(w.se5,0)AS wse5,w.sumse AS sumse2 FROM 
+ (SELECT *,(ISNULL(a.se1,0)+ISNULL(a.se2,0)+ISNULL(a.se3,0)+ISNULL(a.se4,0)+ISNULL(a.se5,0)) AS sumse FROM (
+
+SELECT NSRDZDAH,SUM(CASE WHEN FTaxClassAllowanceNo='01-1' THEN adjustse end) AS se1 ,
+SUM(CASE WHEN FTaxClassAllowanceNo='01-2' THEN adjustse end) AS se2,
+SUM(CASE WHEN FTaxClassAllowanceNo='02' THEN adjustse end) AS se3,
+SUM(CASE WHEN FTaxClassAllowanceNo='04' THEN adjustse end) AS se4,
+SUM(CASE WHEN FTaxClassAllowanceNo='05' THEN adjustse end) AS se5
+ FROM (SELECT FTaxAuditId,FYear,NSRDZDAH FROM fund.t_TaxAuditForm WHERE FAllowanceClassNo='J'AND FNewEnterprisePropNo<>'01' and FYear=2014 )a INNER JOIN 
+
+(SELECT a.SE-ISNULL(b.FAdjustAmount,0) AS adjustse ,a.FTaxAuditId,a.FTaxClassAllowanceNo ,a.FYear FROM  (SELECT FYear ,FTaxAuditId,FTaxClassAllowanceNo ,SUM(se) AS se FROM fund.t_TaxAudit_SB_ZSXX GROUP BY FYear ,FTaxAuditId,FTaxClassAllowanceNo )  a left JOIN fund.t_TaxAuditAdjust  b ON a.FTaxAuditId=b.FTaxAuditId AND 
+a.FTaxClassAllowanceNo=b.FTaxClassAllowanceNo AND a.FYear =b.FYear ) b  ON a.FTaxAuditId=b.FTaxAuditId AND a.FYear =b.FYear  GROUP BY a.NSRDZDAH
+)a  WHERE (ISNULL(a.se1,0)+ISNULL(a.se2,0)+ISNULL(a.se3,0)+ISNULL(a.se4,0)+ISNULL(a.se5,0))>0)z LEFT JOIN 
+(
+SELECT *,(ISNULL(a.se1,0)+ISNULL(a.se2,0)+ISNULL(a.se3,0)+ISNULL(a.se4,0)+ISNULL(a.se5,0)) AS sumse FROM (
+
+SELECT NSRDZDAH,SUM(CASE WHEN FTaxClassAllowanceNo='01-1' THEN adjustse end) AS se1 ,
+SUM(CASE WHEN FTaxClassAllowanceNo='01-2' THEN adjustse end) AS se2,
+SUM(CASE WHEN FTaxClassAllowanceNo='02' THEN adjustse end) AS se3,
+SUM(CASE WHEN FTaxClassAllowanceNo='04' THEN adjustse end) AS se4,
+SUM(CASE WHEN FTaxClassAllowanceNo='05' THEN adjustse end) AS se5
+ FROM (SELECT FTaxAuditId,FYear,NSRDZDAH FROM fund.t_TaxAuditForm WHERE FAllowanceClassNo='J'AND FNewEnterprisePropNo<>'01' and FYear=2013 )a INNER JOIN 
+
+(SELECT a.SE-ISNULL(b.FAdjustAmount,0) AS adjustse ,a.FTaxAuditId,a.FTaxClassAllowanceNo ,a.FYear FROM  (SELECT FYear ,FTaxAuditId,FTaxClassAllowanceNo ,SUM(se) AS se FROM fund.t_TaxAudit_SB_ZSXX GROUP BY FYear ,FTaxAuditId,FTaxClassAllowanceNo )  a left JOIN fund.t_TaxAuditAdjust  b ON a.FTaxAuditId=b.FTaxAuditId AND 
+a.FTaxClassAllowanceNo=b.FTaxClassAllowanceNo AND a.FYear =b.FYear ) b  ON a.FTaxAuditId=b.FTaxAuditId AND a.FYear =b.FYear  GROUP BY a.NSRDZDAH
+)a WHERE (ISNULL(a.se1,0)+ISNULL(a.se2,0)+ISNULL(a.se3,0)+ISNULL(a.se4,0)+ISNULL(a.se5,0))>0)w   ON z.NSRDZDAH = w.NSRDZDAH
+LEFT JOIN fund.V_DJ_NSRXX y ON z.NSRDZDAH=y.NSRDZDAH  
+ WHERE  z.sumse-w.sumse>5000000 
